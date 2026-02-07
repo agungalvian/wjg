@@ -1,0 +1,90 @@
+<div class="edit-resident-page">
+    <div class="card">
+        <div class="card-header">
+            <h3>Edit Data Warga: <%= resident.full_name %>
+            </h3>
+        </div>
+        <div class="card-body">
+            <form action="/residents/edit/<%= resident.id %>" method="POST" class="edit-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" value="<%= resident.username %>" required>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="full_name" class="form-control" value="<%= resident.full_name %>" required>
+                </div>
+                <div class="form-group mt-3">
+                    <label>No. Rumah</label>
+                    <input type="text" name="house_number" class="form-control" value="<%= resident.house_number %>"
+                        required>
+                </div>
+                <div class="form-group mt-3">
+                    <label>No. Telepon</label>
+                    <input type="text" name="phone" class="form-control" value="<%= resident.phone %>" required>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Status Hunian</label>
+                    <select name="occupancy_status" class="form-control" required>
+                        <option value="dihuni" <%=resident.occupancy_status==='dihuni' ? 'selected' : '' %>>Dihuni
+                            Pemilik</option>
+                        <option value="sewa" <%=resident.occupancy_status==='sewa' ? 'selected' : '' %>>Sewa/Kontrak
+                        </option>
+                        <option value="kosong" <%=resident.occupancy_status==='kosong' ? 'selected' : '' %>>Kosong
+                            (Tidak Berpenghuni)</option>
+                    </select>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Password Baru (Kosongkan jika tidak ingin ganti)</label>
+                    <input type="password" name="password" class="form-control" minlength="6">
+                </div>
+
+                <div class="mt-4 flex-gap">
+                    <button type="submit" class="btn-primary">Simpan Perubahan</button>
+                    <a href="/residents" class="btn-secondary">Batal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-resident-page {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .edit-form .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .flex-gap {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-secondary {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        background: #edf2f7;
+        color: #4a5568;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .mt-3 {
+        margin-top: 1rem;
+    }
+</style>

@@ -1,0 +1,259 @@
+<div class="dashboard-grid">
+    <!-- Stats Cards: Fund Balances -->
+    <div class="stat-card">
+        <div class="icon-wrapper blue">
+            <i class="fas fa-home"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Kas Perumahan</h3>
+            <p>Rp <%= formatNumber(stats.balances && stats.balances.housing || 0) %>
+            </p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon-wrapper orange">
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Dana Sosial</h3>
+            <p>Rp <%= formatNumber(stats.balances && stats.balances.social || 0) %>
+            </p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="icon-wrapper green">
+            <i class="fas fa-users-cog"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Kas RT</h3>
+            <p>Rp <%= formatNumber(stats.balances && stats.balances.rt || 0) %>
+            </p>
+        </div>
+    </div>
+    <div class="stat-card total-balance-card">
+        <div class="icon-wrapper gold">
+            <i class="fas fa-vault"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Total Kas Keseluruhan</h3>
+            <p>Rp <%= formatNumber(stats.totalBalance || 0) %>
+            </p>
+        </div>
+    </div>
+
+    <% if (user.role==='resident' ) { %>
+        <div class="stat-card">
+            <div class="icon-wrapper purple">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Status Iuran (<%= currentMonthLabel %>)</h3>
+                <div class="status-badges">
+                    <% stats.residentStatus.forEach(status=> { %>
+                        <span class="badge-status <%= status === 'LUNAS' ? 'bg-success' : 'bg-danger' %>">
+                            <%= status %>
+                        </span>
+                        <% }) %>
+                </div>
+            </div>
+        </div>
+        <% } else { %>
+            <div class="stat-card">
+                <div class="icon-wrapper red">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Menunggu Konfirmasi</h3>
+                    <p class="<%= stats.pendingPayments > 0 ? 'text-danger' : '' %>">
+                        <%= stats.pendingPayments %> Pembayaran
+                    </p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="icon-wrapper blue">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Warga</h3>
+                    <p>
+                        <%= stats.residents %> KK
+                    </p>
+                </div>
+            </div>
+            <% } %>
+</div>
+
+<!-- Charts Section -->
+<div class="dashboard-section mt-6">
+    <div class="chart-container full-width">
+        <h3>Arus Kas Bulanan</h3>
+        <canvas id="cashflowChart" data-chart='<%- JSON.stringify(stats.chartData) %>'></canvas>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const canvas = document.getElementById('cashflowChart');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const chartData = JSON.parse(canvas.getAttribute('data-chart'));
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Kas Perumahan',
+                    data: chartData.housing,
+                    backgroundColor: '#667eea',
+                    borderRadius: 4
+                }, {
+                    label: 'Dana Sosial',
+                    data: chartData.social,
+                    backgroundColor: '#ed8936',
+                    borderRadius: 4
+                }, {
+                    label: 'Kas RT',
+                    data: chartData.rt,
+                    backgroundColor: '#48bb78',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    const val = context.parsed.y.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                    label += 'Rp ' + val;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-section {
+        width: 100%;
+    }
+
+    .mt-6 {
+        margin-top: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .icon-wrapper {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .blue {
+        background: #667eea;
+    }
+
+    .orange {
+        background: #ed8936;
+    }
+
+    .red {
+        background: #f56565;
+    }
+
+    .green {
+        background: #48bb78;
+    }
+
+    .gold {
+        background: #ecc94b;
+    }
+
+    .purple {
+        background: #9f7aea;
+    }
+
+    .text-success {
+        color: #48bb78;
+    }
+
+    .text-danger {
+        color: #f56565;
+    }
+
+    .badge-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: white;
+        margin-right: 0.25rem;
+        margin-top: 0.25rem;
+    }
+
+    .bg-success {
+        background-color: #48bb78;
+    }
+
+    .bg-danger {
+        background-color: #f56565;
+    }
+
+    .stat-info h3 {
+        font-size: 0.9rem;
+        color: #718096;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-info p {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+</style>

@@ -1,0 +1,396 @@
+<div class="reports-page">
+    <div class="report-actions no-print">
+        <form action="/reports" method="GET" class="filter-form">
+            <div class="filter-group">
+                <label>Bulan:</label>
+                <select name="month" class="form-control-sm">
+                    <option value="">Semua Bulan</option>
+                    <% const months=['Januari', 'Februari' , 'Maret' , 'April' , 'Mei' , 'Juni' , 'Juli' , 'Agustus'
+                        , 'September' , 'Oktober' , 'November' , 'Desember' ]; %>
+                        <% months.forEach((m, i)=> { %>
+                            <option value="<%= String(i + 1).padStart(2, '0') %>" <%=filters.month===String(i +
+                                1).padStart(2, '0' ) ? 'selected' : '' %>><%= m %>
+                            </option>
+                            <% }) %>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tahun:</label>
+                <select name="year" class="form-control-sm">
+                    <% const currentYear=new Date().getFullYear(); %>
+                        <option value="">Semua Tahun</option>
+                        <% for(let y=currentYear; y>= currentYear - 5; y--) { %>
+                            <option value="<%= y %>" <%=filters.year==y ? 'selected' : '' %>><%= y %>
+                            </option>
+                            <% } %>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary-sm"><i class="fas fa-filter"></i> Filter</button>
+            <a href="/reports" class="btn-secondary-sm">Reset</a>
+        </form>
+        <div class="action-buttons">
+            <a href="/reports/export?month=<%= filters.month %>&year=<%= filters.year %>" class="btn-excel">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+            <button onclick="window.print()" class="btn-print"><i class="fas fa-print"></i> Cetak PDF</button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="card bg-blue">
+            <h3>Kas Perumahan</h3>
+            <div class="balance-item">
+                <small>Saldo Awal:</small> <span>Rp <%= formatNumber(summary.housing.initial) %></span>
+            </div>
+            <div class="flex-between mt-1">
+                <span>Masuk: Rp <%= formatNumber(summary.housing.in) %></span>
+                <span>Keluar: Rp <%= formatNumber(summary.housing.out) %></span>
+            </div>
+            <hr>
+            <p>Saldo Akhir: <strong>Rp <%= formatNumber(summary.housing.balance) %></strong></p>
+        </div>
+        <div class="card bg-orange">
+            <h3>Dana Sosial</h3>
+            <div class="balance-item">
+                <small>Saldo Awal:</small> <span>Rp <%= formatNumber(summary.social.initial) %></span>
+            </div>
+            <div class="flex-between mt-1">
+                <span>Masuk: Rp <%= formatNumber(summary.social.in) %></span>
+                <span>Keluar: Rp <%= formatNumber(summary.social.out) %></span>
+            </div>
+            <hr>
+            <p>Saldo Akhir: <strong>Rp <%= formatNumber(summary.social.balance) %></strong></p>
+        </div>
+        <div class="card bg-green">
+            <h3>Kas RT</h3>
+            <div class="balance-item">
+                <small>Saldo Awal:</small> <span>Rp <%= formatNumber(summary.rt.initial) %></span>
+            </div>
+            <div class="flex-between mt-1">
+                <span>Masuk: Rp <%= formatNumber(summary.rt.in) %></span>
+                <span>Keluar: Rp <%= formatNumber(summary.rt.out) %></span>
+            </div>
+            <hr>
+            <p>Saldo Akhir: <strong>Rp <%= formatNumber(summary.rt.balance) %></strong></p>
+        </div>
+        <div class="card bg-gold">
+            <h3>Total Kas Keseluruhan</h3>
+            <div class="balance-item">
+                <small>Saldo Awal:</small> <span>Rp <%= formatNumber(summary.total.initial) %></span>
+            </div>
+            <div class="flex-between mt-1">
+                <span>Total Masuk: Rp <%= formatNumber(summary.total.in) %></span>
+                <span>Total Keluar: Rp <%= formatNumber(summary.total.out) %></span>
+            </div>
+            <hr>
+            <p>Saldo Akhir: <strong>Rp <%= formatNumber(summary.total.balance) %></strong></p>
+        </div>
+    </div>
+
+    <!-- Mutations Table -->
+
+    <!-- Mutations Table -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Rincian Transaksi</h3>
+        </div>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Warga</th>
+                        <th>Sumber Dana</th>
+                        <th>Kategori</th>
+                        <th>Masuk</th>
+                        <th>Keluar</th>
+                        <th>Bukti</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% mutations.forEach(m=> { %>
+                        <tr>
+                            <td>
+                                <%= new Date(m.date).toLocaleDateString('id-ID') %>
+                            </td>
+                            <td>
+                                <%= m.description %>
+                            </td>
+                            <td>
+                                <%= m.resident_name || '-' %>
+                            </td>
+                            <td>
+                                <% if(m.fund_type==='housing' ) { %> <span class="badge bg-blue-light">Perumahan</span>
+                                    <% } %>
+                                        <% if(m.fund_type==='social' ) { %> <span
+                                                class="badge bg-orange-light">Sosial</span>
+                                            <% } %>
+                                                <% if(m.fund_type==='rt' ) { %> <span
+                                                        class="badge bg-green-light">RT</span>
+                                                    <% } %>
+                                                        <% if(m.fund_type==='multiple' ) { %> <span
+                                                                class="badge bg-gold-light">Semua Kas</span>
+                                                            <% } %>
+                            </td>
+                            <td><span class="badge">
+                                    <%= m.category %>
+                                </span></td>
+                            <td class="text-success">
+                                <%= m.type==='in' ? 'Rp ' + formatNumber(m.amount) : '-' %>
+                            </td>
+                            <td class="text-danger">
+                                <%= m.type==='out' ? 'Rp ' + formatNumber(m.amount) : '-' %>
+                            </td>
+                            <td>
+                                <% if (m.proof_image) { %>
+                                    <a href="/uploads/<%= m.proof_image %>" target="_blank" class="btn-proof">
+                                        <i class="fas fa-image"></i>
+                                    </a>
+                                    <% } else { %>
+                                        <span class="text-muted">-</span>
+                                        <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-form {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .filter-group label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray);
+    }
+
+    .form-control-sm {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.4rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary-sm {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 0.4rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+
+    .btn-secondary-sm {
+        background: #edf2f7;
+        color: #4a5568;
+        padding: 0.4rem 1rem;
+        border-radius: 0.4rem;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+
+    .btn-print {
+        background: #4a5568;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 99px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-print:hover {
+        background: #2d3748;
+    }
+
+    .btn-excel {
+        background: #48bb78;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 99px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .btn-excel:hover {
+        background: #38a169;
+        color: white;
+    }
+
+    .btn-proof {
+        color: var(--primary);
+        font-size: 0.9rem;
+    }
+
+    @media print {
+
+        .no-print,
+        .sidebar,
+        .top-bar,
+        .report-actions {
+            display: none !important;
+        }
+
+        .main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .reports-page {
+            width: 100%;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #eee;
+        }
+
+        body {
+            background: white !important;
+            overflow: visible !important;
+        }
+
+        .app-container {
+            display: block !important;
+        }
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+
+    .bg-green {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .bg-green-light {
+        background: #e6fffa;
+        color: #22543d;
+    }
+
+    .bg-orange {
+        background: #bee3f8;
+        color: #2a4365;
+    }
+
+    /* Swapped colors for variety */
+    .bg-orange-light {
+        background: #fffaf0;
+        color: #ed8936;
+    }
+
+    .bg-blue {
+        background: #ebf8ff;
+        color: #2c5282;
+    }
+
+    .bg-blue-light {
+        background: #ebf8ff;
+        color: #2c5282;
+    }
+
+    .bg-gold {
+        background: #fefcbf;
+        color: #744210;
+    }
+
+    .card {
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        background: white;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .inline-form {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .inline-form .form-control {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .text-success {
+        color: #48bb78;
+        font-weight: 600;
+    }
+
+    .text-danger {
+        color: #f56565;
+        font-weight: 600;
+    }
+
+    .flex-between {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .balance-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+        color: rgba(0, 0, 0, 0.6);
+    }
+
+    .mt-1 {
+        margin-top: 0.25rem;
+    }
+
+    hr {
+        border: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        margin: 0.5rem 0;
+    }
+</style>

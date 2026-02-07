@@ -1,0 +1,220 @@
+<div class="announcement-page">
+    <div class="header-actions">
+        <!-- Filter Buttons -->
+        <div class="categories">
+            <a href="/announcements?category=all" class="cat-pill <%= category === 'all' ? 'active' : '' %>">Semua</a>
+            <a href="/announcements?category=important"
+                class="cat-pill <%= category === 'important' ? 'active' : '' %>">Penting</a>
+            <a href="/announcements?category=event"
+                class="cat-pill <%= category === 'event' ? 'active' : '' %>">Kegiatan</a>
+            <a href="/announcements?category=documentation"
+                class="cat-pill <%= category === 'documentation' ? 'active' : '' %>">Dokumentasi</a>
+        </div>
+
+        <% if (user.role==='admin' ) { %>
+            <button class="btn-primary" onclick="document.getElementById('announceModal').style.display='block'">
+                <i class="fas fa-plus"></i> Buat Pengumuman
+            </button>
+            <% } %>
+    </div>
+
+    <!-- Announcement Feed -->
+    <div class="feed">
+        <% if (announcements.length===0) { %>
+            <div class="empty-state">Belum ada pengumuman.</div>
+            <% } %>
+
+                <% announcements.forEach(a=> { %>
+                    <div class="card announce-card border-<%= a.category %>">
+                        <div class="card-body">
+                            <span class="badge badge-<%= a.category %>">
+                                <%= a.category %>
+                            </span>
+                            <small class="text-muted">
+                                <%= new Date(a.date_created).toLocaleDateString() %>
+                            </small>
+                            <h3 class="announce-title">
+                                <%= a.title %>
+                            </h3>
+                            <% if (a.image) { %>
+                                <div class="announce-image">
+                                    <img src="/uploads/<%= a.image %>" alt="<%= a.title %>">
+                                </div>
+                                <% } %>
+                                    <div class="announce-content text-justify">
+                                        <%= a.content %>
+                                    </div>
+
+                                    <% if (user.role==='admin' ) { %>
+                                        <a href="/announcements/delete/<%= a.id %>" class="delete-link"
+                                            onclick="return confirm('Hapus?')"><i class="fas fa-trash"></i></a>
+                                        <% } %>
+                        </div>
+                    </div>
+                    <% }) %>
+    </div>
+</div>
+
+<% if (user.role==='admin' ) { %>
+    <!-- Add Modal -->
+    <div id="announceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('announceModal').style.display='none'">&times;</span>
+            <h3>Buat Pengumuman</h3>
+            <form action="/announcements/add" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Judul</label>
+                    <input type="text" name="title" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select name="category" class="form-control">
+                        <option value="important">Penting</option>
+                        <option value="event">Kegiatan</option>
+                        <option value="documentation">Dokumentasi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Foto Kegiatan (Opsional)</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Isi Pengumuman</label>
+                    <textarea name="content" rows="4" required class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn-primary w-100">Publikasi</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+        <style>
+            .header-actions {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+
+            .categories {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .cat-pill {
+                padding: 0.5rem 1rem;
+                background: white;
+                border-radius: 99px;
+                color: #718096;
+                text-decoration: none;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                transition: 0.2s;
+            }
+
+            .cat-pill.active {
+                background: #6f42c1;
+                color: white;
+            }
+
+            .feed {
+                display: grid;
+                gap: 1.5rem;
+            }
+
+            .announce-card {
+                background: white;
+                border-radius: 1rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                border-left: 5px solid #ccc;
+                transition: transform 0.2s, box-shadow 0.2s;
+                position: relative;
+                margin-bottom: 1rem;
+            }
+
+            .announce-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            .announce-title {
+                margin: 0.75rem 0;
+                color: #2d3748;
+                font-weight: 700;
+                line-height: 1.3;
+            }
+
+            .announce-image {
+                margin: 0.5rem 0 1rem 0;
+                border-radius: 0.5rem;
+                overflow: hidden;
+                border: 1px solid #edf2f7;
+            }
+
+            .announce-image img {
+                width: 100%;
+                max-height: 400px;
+                object-fit: cover;
+                display: block;
+            }
+
+            .announce-content {
+                color: #4a5568;
+                line-height: 1.6;
+                white-space: pre-wrap;
+                font-size: 0.95rem;
+            }
+
+            .text-justify {
+                text-align: justify;
+            }
+
+            .badge {
+                padding: 0.35rem 0.75rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border-radius: 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.025em;
+            }
+
+            .badge-important {
+                background: #fed7d7;
+                color: #c53030;
+            }
+
+            .badge-event {
+                background: #c6f6d5;
+                color: #2f855a;
+            }
+
+            .badge-documentation {
+                background: #ebf8ff;
+                color: #2b6cb0;
+            }
+
+            .border-important {
+                border-left-color: #f56565;
+            }
+
+            .border-event {
+                border-left-color: #48bb78;
+            }
+
+            .border-documentation {
+                border-left-color: #4299e1;
+            }
+
+            .delete-link {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                color: #e53e3e;
+                opacity: 0.6;
+                transition: 0.2s;
+            }
+
+            .delete-link:hover {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        </style>

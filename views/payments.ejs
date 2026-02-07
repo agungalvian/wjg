@@ -1,0 +1,164 @@
+<div class="card">
+    <div class="card-header flex-between">
+        <h3>Konfirmasi Pembayaran</h3>
+        <div class="filter-tabs">
+            <a href="/payments?status=pending"
+                class="tab <%= statusFilter === 'pending' ? 'active' : '' %>">Menunggu</a>
+            <a href="/payments?status=approved"
+                class="tab <%= statusFilter === 'approved' ? 'active' : '' %>">Diterima</a>
+            <a href="/payments?status=rejected"
+                class="tab <%= statusFilter === 'rejected' ? 'active' : '' %>">Ditolak</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Warga</th>
+                    <th>Bulan Tagihan</th>
+                    <th>Bukti</th>
+                    <th>Tgl Bayar</th>
+                    <th>Tgl Kirim</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% payments.forEach(p=> { %>
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <strong>
+                                    <%= p.full_name %>
+                                </strong><br>
+                                <small class="text-muted">
+                                    <%= p.house_number %>
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            <%= p.month_paid_for %>
+                        </td>
+                        <td>
+                            <a href="<%= p.proof_image.startsWith('/') ? p.proof_image : '/uploads/' + p.proof_image %>"
+                                target="_blank" class="btn-link">Lihat Bukti</a>
+                        </td>
+                        <td>
+                            <%= p.payment_date ? new Date(p.payment_date).toLocaleDateString('id-ID') : '-' %>
+                        </td>
+                        <td>
+                            <%= new Date(p.date_submitted).toLocaleDateString('id-ID') %>
+                        </td>
+                        <td>
+                            <% if (p.status==='pending' && user.role==='admin' ) { %>
+                                <button class="btn-sm btn-success"
+                                    onclick="openConfirmModal('<%= p.id %>', 'approved')">Terima</button>
+                                <button class="btn-sm btn-danger"
+                                    onclick="openConfirmModal('<%= p.id %>', 'rejected')">Tolak</button>
+                                <% } else { %>
+                                    <span class="badge badge-<%= p.status %>">
+                                        <%= p.status %>
+                                    </span>
+                                    <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Hidden Action Form -->
+<form id="paymentActionForm" action="/payments/update" method="POST" style="display:none;">
+    <input type="hidden" name="id" id="hiddenPaymentId">
+    <input type="hidden" name="status" id="hiddenPaymentStatus">
+    <input type="hidden" name="admin_note" id="hiddenAdminNote">
+</form>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function openConfirmModal(id, status) {
+        const isApproved = status === 'approved';
+        const title = isApproved ? 'Terima Pembayaran?' : 'Tolak Pembayaran?';
+        const confirmText = isApproved ? 'Ya, Terima' : 'Ya, Tolak';
+        const confirmColor = isApproved ? '#48bb78' : '#f56565';
+
+        Swal.fire({
+            title: title,
+            input: 'textarea',
+            inputLabel: 'Catatan (Opsional)',
+            inputPlaceholder: 'Tulis catatan disini...',
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            cancelButtonColor: '#718096',
+            confirmButtonText: confirmText,
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('hiddenPaymentId').value = id;
+                document.getElementById('hiddenPaymentStatus').value = status;
+                document.getElementById('hiddenAdminNote').value = result.value;
+                document.getElementById('paymentActionForm').submit();
+            }
+        });
+    }
+</script>
+
+<style>
+    .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        background: #f1f5f9;
+        padding: 0.25rem;
+        border-radius: 0.5rem;
+    }
+
+    .tab {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .tab.active {
+        background: white;
+        color: #764ba2;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        font-weight: 600;
+    }
+
+    .btn-link {
+        color: #667eea;
+        text-decoration: underline;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        border: none;
+        color: white;
+        margin-right: 0.25rem;
+    }
+
+    .btn-success {
+        background: #48bb78;
+    }
+
+    .btn-danger {
+        background: #f56565;
+    }
+
+    .text-muted {
+        color: #aaa;
+        font-size: 0.85em;
+    }
+</style>

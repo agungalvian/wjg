@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wira Jatiasih Greenhills</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="/favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="mobile-header">
+        <button id="sidebarToggle" class="btn-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <img src="/img/logo.png" alt="Wira Jatiasih Greenhills" class="mobile-logo">
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="brand">
+                <img src="/img/logo.png" alt="Logo" class="sidebar-logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="/dashboard" class="<%= path === '/dashboard' ? 'active' : '' %>"><i
+                            class="fas fa-home"></i> Dashboard</a></li>
+
+                <% if (user.role==='admin' || user.role==='viewer' ) { %>
+                    <li><a href="/residents" class="<%= path === '/residents' ? 'active' : '' %>"><i
+                                class="fas fa-users"></i> Data Warga</a></li>
+                    <li><a href="/payments" class="<%= path === '/payments' ? 'active' : '' %>"><i
+                                class="fas fa-money-bill-wave"></i> Pembayaran</a></li>
+                    <li><a href="/mutations" class="<%= path === '/mutations' ? 'active' : '' %>"><i
+                                class="fas fa-exchange-alt"></i> Mutasi Keuangan</a></li>
+                    <li><a href="/matrix" class="<%= path === '/matrix' ? 'active' : '' %>"><i
+                                class="fas fa-calendar-check"></i> Status Iuran Warga</a></li>
+                    <li><a href="/admins" class="<%= path === '/admins' ? 'active' : '' %>"><i
+                                class="fas fa-user-shield"></i> Kelola Admin</a></li>
+                    <li><a href="/settings" class="<%= path === '/settings' ? 'active' : '' %>"><i
+                                class="fas fa-cog"></i> Pengaturan</a></li>
+                    <% } else { %>
+                        <li><a href="/my-payments" class="<%= path === '/my-payments' ? 'active' : '' %>"><i
+                                    class="fas fa-wallet"></i> Pembayaran Saya</a></li>
+                        <li><a href="/my-status" class="<%= path === '/my-status' ? 'active' : '' %>"><i
+                                    class="fas fa-calendar-check"></i> Status Iuran</a></li>
+                        <% } %>
+
+                            <li><a href="/announcements" class="<%= path === '/announcements' ? 'active' : '' %>"><i
+                                        class="fas fa-bullhorn"></i> Pengumuman</a></li>
+                            <li><a href="/reports" class="<%= path === '/reports' ? 'active' : '' %>"><i
+                                        class="fas fa-chart-line"></i> Laporan Keuangan</a></li>
+            </ul>
+            <div class="user-info">
+                <p>Halo, <%= user.full_name %>
+                </p>
+                <div class="user-actions">
+                    <a href="/profile" class="profile-link <%= path === '/profile' ? 'active' : '' %>"><i
+                            class="fas fa-user-circle"></i> Profil</a>
+                    <a href="/logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h2>
+                    <%= title %>
+                </h2>
+                <div class="date-display">
+                    <%= new Date().toLocaleDateString('id-ID', { weekday: 'long' , year: 'numeric' , month: 'long' ,
+                        day: 'numeric' }) %>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <%- body %>
+            </div>
+        </main>
+    </div>
+    <script>
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+
+</html>

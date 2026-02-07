@@ -1,0 +1,214 @@
+<div class="residents-page">
+    <div class="actions-bar">
+        <form action="/residents" method="GET" class="search-form">
+            <input type="text" name="search" value="<%= search %>" placeholder="Cari nama atau no. rumah...">
+            <button type="submit"><i class="fas fa-search"></i> Cari</button>
+        </form>
+        <% if (user.role==='admin' ) { %>
+            <button class="btn-primary" onclick="document.getElementById('addModal').style.display='block'">
+                <i class="fas fa-user-plus"></i> Tambah Warga
+            </button>
+            <% } %>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>No. Rumah</th>
+                    <th>Nama Lengkap</th>
+                    <th>Username</th>
+                    <th>No. HP</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% residents.forEach(resident=> { %>
+                    <tr>
+                        <td>
+                            <%= resident.house_number %>
+                        </td>
+                        <td>
+                            <%= resident.full_name %>
+                        </td>
+                        <td>
+                            <%= resident.username %>
+                        </td>
+                        <td>
+                            <%= resident.phone %>
+                        </td>
+                        <td>
+                            <% let badgeClass='dihuni' ; if (resident.occupancy_status==='sewa' ) badgeClass='sewa' ; if
+                                (resident.occupancy_status==='kosong' ) badgeClass='kosong' ; %>
+                                <span class="badge badge-occupancy-<%= resident.occupancy_status || 'dihuni' %>">
+                                    <%= (resident.occupancy_status || 'dihuni' ).charAt(0).toUpperCase() +
+                                        (resident.occupancy_status || 'dihuni' ).slice(1) %>
+                                </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <% if (user.role==='admin' ) { %>
+                                    <a href="/residents/edit/<%= resident.id %>" class="btn-edit" title="Edit Data">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="/residents/delete/<%= resident.id %>" class="btn-danger-sm"
+                                        onclick="return confirm('Yakin ingin menghapus warga ini?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    <% } else { %>
+                                        <span class="text-muted">No Actions</span>
+                                        <% } %>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<% if (user.role==='admin' ) { %>
+    <!-- Add Resident Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('addModal').style.display='none'">&times;</span>
+            <h3>Tambah Warga Baru</h3>
+            <form action="/residents/add" method="POST">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="full_name" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Nomor Rumah</label>
+                    <input type="text" name="house_number" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Nomor HP</label>
+                    <input type="text" name="phone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Status Hunian</label>
+                    <select name="occupancy_status" class="form-control" required>
+                        <option value="dihuni">Dihuni Pemilik</option>
+                        <option value="sewa">Sewa/Kontrak</option>
+                        <option value="kosong">Kosong (Tidak Berpenghuni)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Password Default</label>
+                    <input type="password" name="password" required class="form-control">
+                </div>
+                <button type="submit" class="btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+        <style>
+            .actions-bar {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 1.5rem;
+            }
+
+            .search-form {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .search-form input {
+                padding: 0.5rem;
+                border: 1px solid #ddd;
+                border-radius: 0.5rem;
+                width: 250px;
+            }
+
+            .table-container {
+                background: white;
+                padding: 1.5rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th,
+            td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #eee;
+            }
+
+            th {
+                font-weight: 600;
+                color: #718096;
+            }
+
+            .btn-danger-sm {
+                color: #f56565;
+                cursor: pointer;
+            }
+
+            /* Modal Styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 100;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.4);
+            }
+
+            .modal-content {
+                background-color: #fefefe;
+                margin: 10% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 400px;
+                border-radius: 1rem;
+            }
+
+            .badge-occupancy-dihuni {
+                background: #c6f6d5;
+                color: #22543d;
+            }
+
+            .badge-occupancy-sewa {
+                background: #feebc8;
+                color: #7b341e;
+            }
+
+            .badge-occupancy-kosong {
+                background: #edf2f7;
+                color: #4a5568;
+            }
+
+            .badge-occupancy-dihuni,
+            .badge-occupancy-sewa,
+            .badge-occupancy-kosong {
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: capitalize;
+            }
+
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+        </style>

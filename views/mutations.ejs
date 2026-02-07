@@ -1,0 +1,234 @@
+<div class="mutations-page">
+    <div class="card">
+        <div class="card-header">
+            <h3>Catat Mutasi (Masuk/Keluar)</h3>
+        </div>
+        <div class="card-body">
+            <% if (user.role==='admin' ) { %>
+                <form action="/mutations/add" method="POST" enctype="multipart/form-data" class="mutation-form">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label>Sumber Dana</label>
+                            <select name="fund_type" class="form-control" required>
+                                <option value="housing">Kas Perumahan</option>
+                                <option value="social">Dana Sosial</option>
+                                <option value="rt">Kas RT</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Jenis</label>
+                            <select name="type" class="form-control" required>
+                                <option value="in">Uang Masuk</option>
+                                <option value="out">Uang Keluar</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Tanggal</label>
+                            <input type="date" name="date" class="form-control"
+                                value="<%= new Date().toISOString().split('T')[0] %>">
+                        </div>
+                    </div>
+
+                    <div class="form-row mt-2">
+                        <div class="form-group flex-1">
+                            <label>Jumlah (Rp)</label>
+                            <input type="number" name="amount" placeholder="Contoh: 50000" class="form-control"
+                                required>
+                        </div>
+                        <div class="form-group flex-2">
+                            <label>Keterangan</label>
+                            <input type="text" name="description" placeholder="Deskripsi transaksi" class="form-control"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="form-row mt-2">
+                        <div class="form-group flex-1">
+                            <label>Kategori</label>
+                            <select name="category" class="form-control">
+                                <option value="maintenance">Perawatan</option>
+                                <option value="event">Kegiatan</option>
+                                <option value="other">Lainnya</option>
+                                <option value="iuran">Iuran Warga</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Upload Bukti</label>
+                            <input type="file" name="proof_image" class="form-control" accept="image/*">
+                        </div>
+                        <div class="form-group flex-none align-self-end">
+                            <button type="submit" class="btn-primary w-100 mb-3" style="height: 45px;">Simpan
+                                Transaksi</button>
+                        </div>
+                    </div>
+                </form>
+                <% } else { %>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Anda memiliki akses <strong>view-only</strong>. Pencatatan
+                        mutasi hanya dapat dilakukan oleh Admin Utama.
+                    </div>
+                    <% } %>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>Riwayat Mutasi</h3>
+        </div>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Warga</th>
+                        <th>Sumber Dana</th>
+                        <th>Kategori</th>
+                        <th>Masuk</th>
+                        <th>Keluar</th>
+                        <th>Bukti</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (mutations.length===0) { %>
+                        <tr>
+                            <td colspan="7" class="text-center">Belum ada data mutasi.</td>
+                        </tr>
+                        <% } %>
+                            <% mutations.forEach(m=> { %>
+                                <tr>
+                                    <td>
+                                        <%= new Date(m.date).toLocaleDateString('id-ID') %>
+                                    </td>
+                                    <td>
+                                        <%= m.description %>
+                                    </td>
+                                    <td>
+                                        <%= m.resident_name || '-' %>
+                                    </td>
+                                    <td>
+                                        <% if(m.fund_type==='housing' ) { %> <span
+                                                class="badge bg-blue-light">Perumahan</span>
+                                            <% } %>
+                                                <% if(m.fund_type==='social' ) { %> <span
+                                                        class="badge bg-orange-light">Sosial</span>
+                                                    <% } %>
+                                                        <% if(m.fund_type==='rt' ) { %> <span
+                                                                class="badge bg-green-light">RT</span>
+                                                            <% } %>
+                                                                <% if(m.fund_type==='multiple' ) { %> <span
+                                                                        class="badge bg-gold-light">Semua Kas</span>
+                                                                    <% } %>
+                                    </td>
+                                    <td><span class="badge">
+                                            <%= m.category %>
+                                        </span></td>
+                                    <td class="text-success">
+                                        <%= m.type==='in' ? 'Rp ' + formatNumber(m.amount) : '-' %>
+                                    </td>
+                                    <td class="text-danger">
+                                        <%= m.type==='out' ? 'Rp ' + formatNumber(m.amount) : '-' %>
+                                    </td>
+                                    <td>
+                                        <% if (m.proof_image) { %>
+                                            <a href="<%= m.proof_image.startsWith('/') ? m.proof_image : '/uploads/' + m.proof_image %>"
+                                                target="_blank" class="btn-proof">
+                                                <i class="fas fa-image"></i> Lihat
+                                            </a>
+                                            <% } else { %>
+                                                <span class="text-muted">-</span>
+                                                <% } %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mutation-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray);
+    }
+
+    .flex-1 {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .flex-2 {
+        flex: 2;
+        min-width: 250px;
+    }
+
+    .flex-none {
+        flex: none;
+    }
+
+    .align-self-end {
+        align-self: flex-end;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-proof {
+        color: var(--primary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    .bg-green-light {
+        background: #e6fffa;
+        color: #22543d;
+    }
+
+    .bg-orange-light {
+        background: #fffaf0;
+        color: #ed8936;
+    }
+
+    .bg-blue-light {
+        background: #ebf8ff;
+        color: #2c5282;
+    }
+
+    .text-success {
+        color: #48bb78;
+        font-weight: 600;
+    }
+
+    .text-danger {
+        color: #f56565;
+        font-weight: 600;
+    }
+</style>

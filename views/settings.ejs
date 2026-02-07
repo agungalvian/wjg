@@ -1,0 +1,139 @@
+<div class="card settings-card">
+    <div class="card-header">
+        <h3>Pengaturan Nominal Iuran</h3>
+    </div>
+    <div class="card-body">
+
+
+        <form action="/settings/update" method="POST">
+            <div class="form-group">
+                <label>Iuran Perumahan (Rp)</label>
+                <input type="number" name="housing_dues" value="<%= settings.housing_dues %>" class="form-control"
+                    required <%=user.role !=='admin' ? 'readonly' : '' %>>
+                <small class="text-muted">Digunakan untuk keamanan, kebersihan, dan perawatan
+                    lingkungan.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Iuran Dana Sosial (Rp)</label>
+                <input type="number" name="social_dues" value="<%= settings.social_dues %>" class="form-control"
+                    required <%=user.role !=='admin' ? 'readonly' : '' %>>
+                <small class="text-muted">Digunakan untuk santunan kematian, sakit, dan kegiatan sosial.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Iuran Kas RT (Rp)</label>
+                <input type="number" name="rt_dues" value="<%= settings.rt_dues %>" class="form-control" required
+                    <%=user.role !=='admin' ? 'readonly' : '' %>>
+                <small class="text-muted">Digunakan untuk operasional RT dan kegiatan warga.</small>
+            </div>
+
+            <hr class="my-4">
+
+            <h4 class="mb-3">Informasi Transfer Bank</h4>
+
+            <div class="form-group">
+                <label>Nama Bank</label>
+                <input type="text" name="bank_name" value="<%= settings.bank_name || '' %>" class="form-control"
+                    placeholder="Contoh: BCA, Mandiri, BRI" <%=user.role !=='admin' ? 'readonly' : '' %>>
+            </div>
+
+            <div class="form-group">
+                <label>Nomor Rekening</label>
+                <input type="text" name="account_number" value="<%= settings.account_number || '' %>"
+                    class="form-control" placeholder="Contoh: 1234567890" <%=user.role !=='admin' ? 'readonly' : '' %>>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Pemilik Rekening</label>
+                <input type="text" name="account_name" value="<%= settings.account_name || '' %>" class="form-control"
+                    placeholder="Atas Nama" <%=user.role !=='admin' ? 'readonly' : '' %>>
+            </div>
+
+            <div class="total-preview">
+                <p>Total Iuran Warga per Bulan: <strong id="totalPreview">Rp 0</strong></p>
+            </div>
+
+            <% if (user.role==='admin' ) { %>
+                <button type="submit" class="btn-primary">Simpan Perubahan</button>
+                <% } else { %>
+                    <div class="alert alert-info">Akses view-only: Anda tidak dapat mengubah pengaturan ini.
+                    </div>
+                    <% } %>
+        </form>
+    </div>
+</div>
+
+<script>
+    const inputs = document.querySelectorAll('input[type="number"]');
+    const totalEl = document.getElementById('totalPreview');
+
+    function calculateTotal() {
+        let total = 0;
+        inputs.forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        totalEl.innerText = 'Rp ' + total.toLocaleString('id-ID');
+    }
+
+    inputs.forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+
+    calculateTotal(); // Initial calc
+</script>
+
+<style>
+    .settings-card {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .text-muted {
+        display: block;
+        margin-top: 0.25rem;
+        color: #718096;
+        font-size: 0.85rem;
+    }
+
+    .total-preview {
+        background: #f7fafc;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1.5rem 0;
+        text-align: center;
+        font-size: 1.1rem;
+    }
+</style>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Check for success/error parameters in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMsg = urlParams.get('success');
+    const errorMsg = urlParams.get('error');
+
+    if (successMsg) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: successMsg,
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            // Remove query param from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        });
+    }
+
+    if (errorMsg) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: errorMsg
+        }).then(() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        });
+    }
+</script>

@@ -1,0 +1,171 @@
+<div class="matrix-page">
+    <div class="card">
+        <div class="card-header flex-between">
+            <h3>Status Iuran Warga - Tahun <%= year %>
+            </h3>
+            <div class="header-actions no-print">
+                <form action="/matrix" method="GET" class="year-filter">
+                    <select name="year" onchange="this.form.submit()" class="form-control">
+                        <% for(let y=2024; y<=2027; y++) { %>
+                            <option value="<%= y %>" <%=y==year ? 'selected' : '' %>><%= y %>
+                            </option>
+                            <% } %>
+                    </select>
+                </form>
+                <button onclick="window.print()" class="btn-print"><i class="fas fa-print"></i> Cetak PDF</button>
+            </div>
+        </div>
+        <div class="table-container matrix-container">
+            <table class="table matrix-table">
+                <thead>
+                    <tr>
+                        <th class="sticky-col">Nama Warga / No. Rumah</th>
+                        <% const months=['Jan', 'Feb' , 'Mar' , 'Apr' , 'Mei' , 'Jun' , 'Jul' , 'Agu' , 'Sep' , 'Okt'
+                            , 'Nov' , 'Des' ]; months.forEach(m=> {
+                            %>
+                            <th>
+                                <%= m %>
+                            </th>
+                            <% }) %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% residents.forEach(res=> { %>
+                        <tr>
+                            <td class="sticky-col">
+                                <strong>
+                                    <%= res.full_name %>
+                                </strong><br>
+                                <small class="text-muted">
+                                    <%= res.house_number %>
+                                </small>
+                            </td>
+                            <% for(let i=1; i<=12; i++) { const monthKey=year + '-' + String(i).padStart(2, '0' ); const
+                                isPaid=paymentMap[res.id] && paymentMap[res.id][monthKey]; %>
+                                <td class="text-center">
+                                    <% if(isPaid) { %>
+                                        <i class="fas fa-check-circle text-success" title="Sudah Bayar"></i>
+                                        <% } else { %>
+                                            <i class="fas fa-times-circle text-danger" title="Belum Bayar"></i>
+                                            <% } %>
+                                </td>
+                                <% } %>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .matrix-container {
+        overflow-x: auto;
+    }
+
+    .matrix-table th,
+    .matrix-table td {
+        min-width: 60px;
+        padding: 0.75rem 0.5rem;
+    }
+
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 10;
+        min-width: 200px !important;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    }
+
+    th.sticky-col {
+        z-index: 11;
+        background: #f7fafc;
+    }
+
+    .text-success {
+        color: #48bb78;
+    }
+
+    .text-danger {
+        color: #f56565;
+    }
+
+    .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn-print {
+        background: #4a5568;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-print:hover {
+        background: #2d3748;
+    }
+
+    @media print {
+
+        .no-print,
+        .sidebar,
+        .top-bar,
+        .mobile-header {
+            display: none !important;
+        }
+
+        .main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        .matrix-container {
+            overflow: visible !important;
+        }
+
+        .sticky-col {
+            position: static !important;
+            box-shadow: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .app-container {
+            display: block !important;
+        }
+
+        .matrix-table {
+            font-size: 10px;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 4px 2px !important;
+            min-width: unset !important;
+        }
+    }
+</style>

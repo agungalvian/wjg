@@ -1,0 +1,314 @@
+<div class="row">
+    <!-- Submission Form -->
+    <div class="col-md-4">
+        <!-- Bank Info Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-university"></i> Rekening Transfer</h5>
+                <hr>
+                <div class="bank-details">
+                    <p class="mb-1"><strong>Bank:</strong>
+                        <%= settings.bank_name || '-' %>
+                    </p>
+                    <p class="mb-1"><strong>No. Rekening:</strong> <br>
+                        <span class="account-number">
+                            <%= settings.account_number || '-' %>
+                        </span>
+                        <button class="btn-copy" onclick="copyToClipboard('<%= settings.account_number %>')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </p>
+                    <p class="mb-0"><strong>Atas Nama:</strong>
+                        <%= settings.account_name || '-' %>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Bayar Iuran</h3>
+            </div>
+            <div class="card-body">
+                <% if (typeof req !=='undefined' && req.query.error) { %>
+                    <div class="alert alert-danger">
+                        <%= req.query.error %>
+                    </div>
+                    <% } %>
+                        <% if (typeof req !=='undefined' && req.query.success) { %>
+                            <div class="alert alert-success">
+                                <%= req.query.success %>
+                            </div>
+                            <% } %>
+
+                                <form action="/submit" method="POST" enctype="multipart/form-data" id="paymentForm">
+                                    <div class="form-group">
+                                        <label>Pilih Bulan yang Akan Dibayar (Maksimal 6 Bulan)</label>
+                                        <div class="month-selection-grid">
+                                            <% const now=new Date(); const currentYear=now.getFullYear(); const
+                                                currentMonthIndex=now.getMonth(); for(let m=0; m <=currentMonthIndex +
+                                                6; m++) { const d=new Date(currentYear, m, 1); const
+                                                monthValue=d.getFullYear() + '-' + String(d.getMonth() +
+                                                1).padStart(2, '0' ); if (paidMonths.has(monthValue)) continue; const
+                                                monthLabel=d.toLocaleDateString('id-ID', { month: 'long' ,
+                                                year: 'numeric' }); const isArrears=(d.getFullYear() < currentYear) ||
+                                                (d.getFullYear()===currentYear && d.getMonth() < currentMonthIndex); %>
+                                                <div class="month-checkbox <%= isArrears ? 'arrears' : '' %>">
+                                                    <input type="checkbox" name="months[]" value="<%= monthValue %>"
+                                                        id="m<%= m %>" class="month-input">
+                                                    <label for="m<%= m %>">
+                                                        <%= monthLabel %>
+                                                            <% if(isArrears) { %> <br><small
+                                                                    class="text-danger">(Tertunggak)</small>
+                                                                <% } %>
+                                                    </label>
+                                                </div>
+                                                <% } %>
+                                        </div>
+                                    </div>
+
+                                    <div class="payment-details mt-3">
+                                        <p>Total yang harus dibayar:</p>
+                                        <h2 id="totalDisplay">Rp 0</h2>
+                                        <input type="hidden" name="total_amount" id="totalAmountInput">
+                                        <small class="text-muted">Rincian per bulan:
+                                            Kas Perumahan (<%= (settings.housing_dues/1000) %>k),
+                                                Sosial (<%= (settings.social_dues/1000) %>k),
+                                                    RT (<%= (settings.rt_dues/1000) %>k)
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <label>Tanggal Bayar (Sesuai Bukti Transfer)</label>
+                                        <input type="date" name="payment_date" class="form-control" required
+                                            value="<%= new Date().toISOString().split('T')[0] %>">
+                                    </div>
+
+                                    <div class="form-group mt-3">
+                                        <label>Bukti Transfer (Screenshot/Foto)</label>
+                                        <input type="file" name="proof_image" class="form-control" accept="image/*"
+                                            required>
+                                    </div>
+                                    <button type="submit" class="btn-primary w-100 mt-3" id="submitBtn" disabled>Kirim
+                                        Bukti Pembayaran</button>
+                                </form>
+
+                                <script>
+                                    const monthInputs = document.querySelectorAll('.month-input');
+                                    const totalDisplay = document.getElementById('totalDisplay');
+                                    const submitBtn = document.getElementById('submitBtn');
+                                    const ratePerMonth = parseInt("<%= (parseInt(settings.housing_dues) + parseInt(settings.social_dues) + parseInt(settings.rt_dues)) %>");
+
+                                    monthInputs.forEach(input => {
+                                        input.addEventListener('change', () => {
+                                            const checkedCount = document.querySelectorAll('.month-input:checked').length;
+                                            const total = checkedCount * ratePerMonth;
+                                            totalDisplay.innerText = 'Rp ' + total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                            submitBtn.disabled = checkedCount === 0;
+                                        });
+                                    });
+                                </script>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Riwayat Pembayaran</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Bulan</th>
+                            <th>Tgl Bayar</th>
+                            <th>Tgl Kirim</th>
+                            <th>Bukti</th>
+                            <th>Status</th>
+                            <th>Keterangan Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% payments.forEach(p=> { %>
+                            <tr>
+                                <td>
+                                    <%= p.month_paid_for %>
+                                </td>
+                                <td>
+                                    <%= p.payment_date ? new Date(p.payment_date).toLocaleDateString('id-ID') : '-' %>
+                                </td>
+                                <td>
+                                    <%= new Date(p.date_submitted).toLocaleDateString('id-ID') %>
+                                </td>
+                                <td>
+                                    <% if (p.proof_image) { %>
+                                        <a href="<%= p.proof_image.startsWith('/') ? p.proof_image : '/uploads/' + p.proof_image %>"
+                                            target="_blank" class="btn-link">Lihat</a>
+                                        <% } else { %>
+                                            <span class="text-muted">-</span>
+                                            <% } %>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<%= p.status %>">
+                                        <%= p.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <%= p.admin_note || '-' %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .month-checkbox.arrears {
+        border: 2px solid #f56565;
+        background: #fff5f5;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .col-md-4 {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .col-md-8 {
+        flex: 2;
+        min-width: 300px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .payment-details {
+        background: #f7fafc;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-pending {
+        background: #fefcbf;
+        color: #b7791f;
+    }
+
+    .badge-approved {
+        background: #c6f6d5;
+        color: #2f855a;
+    }
+
+    .badge-rejected {
+        background: #fed7d7;
+        color: #c53030;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .month-selection-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .month-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.4rem;
+        cursor: pointer;
+    }
+
+    .month-checkbox label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .account-number {
+        font-size: 1.2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #2c5282;
+    }
+
+    .btn-copy {
+        background: none;
+        border: none;
+        color: #718096;
+        cursor: pointer;
+        padding: 0 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .btn-copy:hover {
+        color: #4a5568;
+    }
+
+    .bg-blue-light {
+        background: #ebf8ff;
+        border: 1px solid #bee3f8;
+    }
+
+
+
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+
+    .mb-1 {
+        margin-bottom: 0.25rem;
+    }
+
+    .mb-0 {
+        margin-bottom: 0;
+    }
+</style>
+
+<script>
+    function copyToClipboard(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Nomor rekening disalin!');
+        }).catch(err => {
+            console.error('Gagal menyalin: ', err);
+        });
+    }
+</script>
