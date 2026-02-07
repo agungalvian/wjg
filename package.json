@@ -1,7 +1,7 @@
 {
     "name": "keuangan-wira-jatiasih-greenhills",
     "version": "1.0.0",
-    "description": "Aplikasi Manajemen Keuangan Komplek Wira jatiasih greenhills",
+    "description": "Aplikasi Manajemen Keuangan Komplek Wira Jatiasih Greenhills",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
