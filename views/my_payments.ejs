@@ -43,11 +43,11 @@
 
                                 <form action="/submit" method="POST" enctype="multipart/form-data" id="paymentForm">
                                     <div class="form-group">
-                                        <label>Pilih Bulan yang Akan Dibayar (Maksimal 6 Bulan)</label>
+                                        <label>Pilih Bulan yang Akan Dibayar (Maksimal 12 Bulan)</label>
                                         <div class="month-selection-grid">
                                             <% const now=new Date(); const currentYear=now.getFullYear(); const
                                                 currentMonthIndex=now.getMonth(); for(let m=0; m <=currentMonthIndex +
-                                                6; m++) { const d=new Date(currentYear, m, 1); const
+                                                12; m++) { const d=new Date(currentYear, m, 1); const
                                                 monthValue=d.getFullYear() + '-' + String(d.getMonth() +
                                                 1).padStart(2, '0' ); if (paidMonths.has(monthValue)) continue; const
                                                 monthLabel=d.toLocaleDateString('id-ID', { month: 'long' ,
